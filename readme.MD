@@ -13,7 +13,7 @@ h_{t} = Ah_{t-1} + Bu_{t-1} + \delta
 
 x_t = Ch_t + \epsilon
 
-where D \sim N(d, D) and E \sim N(e, E)
+where \delta \sim N(d, D) and \epsilon \sim N(e, E)
 
 # Usage
 
