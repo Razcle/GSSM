@@ -10,6 +10,7 @@ forward pass.
 The latent states are given by {h_{1...t}}, control inputs {u_{1..t}} and observations {x_{1..t}}
 
 h_{t} = Ah_{t-1} + Bu_{t-1} + D
+
 x_t = Ch_t + E
 
 where D \sim N(d, D) and E \sim N(e, E)
