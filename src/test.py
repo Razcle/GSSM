@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from model import filter, smooth, EM
 
 
@@ -18,15 +19,17 @@ def test_vr():
 def gen_data_for_filtering_and_smoothing():
     dim = 2
     theta = 40.0 * 180/np.pi
-    T = 500
+    T = 1000
     mu_init = np.zeros((1,dim))
     S_init = np.eye(dim)
-    A = 1.000001 * np.eye(dim)
+    A = np.eye(dim)
+    A[0, 0] = 0.001
     B = np.zeros_like(A)
     C = np.eye(dim)
-    D = 0.5 * np.eye(dim)
+    D = np.random.randn(dim, dim)
+    D = D @ D.T
     d = np.zeros(dim)
-    E = 1.5 * np.eye(dim)
+    E =  np.eye(dim)
     e = np.zeros(dim)
 
     params = (A, B, C, D, d, E, e, S_init, mu_init)
@@ -57,7 +60,7 @@ def test_filter(X, U, params):
 means, covs, loglik = test_filter(X, U, params)
 print(loglik)
 
-import matplotlib.pyplot as plt
+
 plt.figure()
 plt.plot(X[0, :, 0], X[0, :, 1],'+k')
 plt.plot(means[:, 0, 0], means[:, 0, 1], '+r')
@@ -108,10 +111,11 @@ plt.plot(means[:, :, 1], 'b+')
 plt.title('smoothing')
 plt.show()
 
+
 #
-# #
-# def callback(ll, params):
-#     print(ll, params)
-#
-#
-# learned_params = EM(params, X, U, callback=callback, tol=1e-1)
+def callback(ll, params):
+    print(ll, params)
+
+init_params = tuple((param * 3 for param in params))
+
+learned_params = EM(init_params, X, U, callback=callback, tol=1e-3)

@@ -44,12 +44,12 @@ def M_step(means, covs, crosses, obs, actions, params):
     S_init = covs[0] - mu_init.T @ mu_init
 
     # Transition Matrices
-    A = np.sum(crosses[1:] @ np.linalg.inv(np.sum(covs[:-1], axis=0)), axis=0)
+    A = np.sum(crosses.swapaxes(-2, -1) @ np.linalg.inv(np.sum(covs[:-1], axis=0)), axis=0)
     C = obs[..., np.newaxis] @ means.reshape((T, N, 1, dim))
     C = np.sum(C @  np.linalg.inv(np.sum(covs, axis=0)), axis=0)
 
     # Noise Matrices
-    D = np.mean(covs[1:] - A @ crosses[:-1], axis=0)
+    D = np.mean(covs[1:] - A @ crosses, axis=0)
     E = np.mean(obs[..., np.newaxis] @ obs.reshape((T, N, 1, dim)), axis=0)
     temp = (obs[..., np.newaxis] @ means.reshape((T, N, 1, dim))) @ C.swapaxes(-2, -1)
     E = np.mean(E - temp, axis=0)
@@ -67,7 +67,9 @@ def log_liklihood(mean, cov, obs):
     delta_x = obs - mean
     half = np.linalg.solve(cov, delta_x[:, :, np.newaxis])
     mahalob = - 0.5 * np.expand_dims(delta_x, 1) @ half
-    return np.squeeze(Z + mahalob)
+    ll = np.squeeze(Z + mahalob)
+    assert(not(np.isnan(ll)))
+    return ll
 
 
 def filter(observations, actions, params):
@@ -145,7 +147,7 @@ def smooth(observations, actions, params):
         # Do the backwards updates
         g_new = (A_back @ g[..., np.newaxis])[:,:,0] + m_back
         G_new = A_back @ G @ A_back.swapaxes(-2, -1) + S_back
-        crss = A_back @ G + g_new @ g.swapaxes(-2, -1)  # this cross moment is needed for learning during the M-step of EM
+        crss = A_back @ G + g_new[..., np.newaxis] @ np.expand_dims(g, 1)  # this cross moment is needed for learning during the M-step of EM
 
         return g_new, G_new, crss
 
@@ -153,19 +155,18 @@ def smooth(observations, actions, params):
 
     G = covs[-1]
     g = means[-1]
-    cs = covs[-1]
     new_means = np.empty_like(means)
     new_covs = np.empty_like(covs)
     new_means[-1] = g
     new_covs[-1] = G
     crsses = np.empty((T - 1, N, dim, dim))
-    print(new_means[0])
+
     for t in range(T-2, -1, -1):
         g, G, cs = backward_step(g, G, means[t], covs[t])
         new_means[t] = g
         new_covs[t] = G
         crsses[t] = cs
-    print(new_means[0])
+
     return new_means, new_covs, crsses, loglik
 
 
