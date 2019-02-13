@@ -109,11 +109,13 @@ def filter(observations, actions, params):
     f = mu_init
     F = S_init
     loglik = 0.0
+    print(means[-10:])
     for t in range(T):
         f, F, ll = step(f, F, observations[:, t, :], actions[:, t, :])
         means[t] = f
         covs[t] = F
         loglik += ll
+    print(means[-10:])
 
     return means, covs, loglik
 

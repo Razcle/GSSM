@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from model import filter, smooth, EM
 
-
+np.random.seed(42)
 
 def test_vr():
     N = 10
@@ -18,18 +18,17 @@ def test_vr():
 
 def gen_data_for_filtering_and_smoothing():
     dim = 2
-    theta = 40.0 * 180/np.pi
+    theta = 40
     T = 1000
-    mu_init = np.zeros((1,dim))
+    mu_init = np.ones((1,dim))
     S_init = np.eye(dim)
-    A = np.eye(dim)
-    A[0, 0] = 0.001
+    A = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
     B = np.zeros_like(A)
     C = np.eye(dim)
     D = np.random.randn(dim, dim)
     D = D @ D.T
     d = np.zeros(dim)
-    E =  np.eye(dim)
+    E = np.eye(dim)
     e = np.zeros(dim)
 
     params = (A, B, C, D, d, E, e, S_init, mu_init)
